@@ -13,13 +13,31 @@ function getAngle(radian){
 //经纬度转换为墨卡托，单位 米
 function latLng2WebMercator(lng, lat) {
 	var mercator={x:0,y:0};
-    var x = lng *20037508.34/180;
-    var y = Math.log(Math.tan((90+lat)*Math.PI/360))/(Math.PI/180);
-    y = y *20037508.34/180;
+    var x = handle_x(lng);
+    // var y = Math.log(Math.tan((90+lat)*Math.PI/360))/(Math.PI/180);
+    // y = y *20037508.34/180;
+	var y = handle_y(lat)
     mercator.x = x;
     mercator.y = y;
     return mercator;
 }
+function handle_x(x) {
+    return (x / 180.0) * 20037508.34;
+}
+function handle_y(y) {
+    if (y > 85.05112) {
+        y = 85.05112;
+    }
+
+    if (y < -85.05112) {
+        y = -85.05112;
+    }
+
+    y = (Math.PI / 180.0) * y;
+    var tmp = Math.PI / 4.0 + y / 2.0;
+    return 20037508.34 * Math.log(Math.tan(tmp)) / Math.PI;
+}
+
 //墨卡托转经纬度，单位 米
 function webMercator2LngLat(mx, my) {
      var lonlat={x:0,y:0};

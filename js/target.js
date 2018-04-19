@@ -44,8 +44,6 @@ var examList=eval({"q":[
 		{"id":"28","baselog":"0","baselogp":"0","baselogtype":"1","baselat":"0","baselatp":"0","baselattype":"1","radius":"2","controlmode":"1","logtype":"1","log":"0","logp":"0","lattype":"1","lat":"0","latp":"0","tposition":"0","trange":"0","trangeunit":"1","speedmode":"1","course":"1","coursespeed":"2","coursespeedunit":"2","targetmode":"airt","targetattr":"1","targethight":"10000"}
 		]});
 examList=examList['q'];
-console.log(examList);
-
 var nowTid=0;
 
 //监听鼠标在态势中的位置
@@ -53,26 +51,22 @@ function situationTracker(){
 	
 	//获取父窗口中的半径信息，确认东经和西经、北纬和南纬
 	baseinfo=examList[nowTid];
-	
 	var x,y;
 	situationBoxEle.on("mousemove",function(e){
-		//console.log(e.pageX+"  "+e.pageY);
 		//计算角度和距离
-		
 		x=e.pageX;	//鼠标点横向坐标
 		y=e.pageY;	//鼠标点纵向坐标
 		
 		
 		//在坐标轴右侧
-		
 		if(x>cX){
 			//在坐标轴右下
 			if(y>cY){
-				aType=1;
+				aType=2;
 			}	
 			//在坐标轴右上
 			else{
-				aType=2;
+				aType=1;
 			}
 		}
 		//在坐标轴左侧
@@ -88,8 +82,8 @@ function situationTracker(){
 			}
 		}
 		//中心到鼠标点的横向，纵向距离
-		ox=Math.abs(x-cX);
-		oy=Math.abs(y-cY);
+		ox=cX-x;
+		oy=cY-y;
 		
 		//计算距离
 		var d=Math.sqrt(ox*ox+oy*oy);
@@ -101,10 +95,10 @@ function situationTracker(){
 		a=parseFloat(a.toFixed(2));
 		switch(aType){
 			case 1:
-				a=90+a;
+				a=90-a;
 				break;
 			case 2:
-				a=90-a;
+				a=90+a;
 				break;
 			case 3:
 				a=270-a;
@@ -116,7 +110,7 @@ function situationTracker(){
 		if(isNaN(a)){
 			a=0;
 		}
-		//计算地图表面的距离
+		//计算地图表面的距离(实际半径)
 		var radius=examList[nowTid].radius;
 
 		distance=radius/cR;
@@ -125,15 +119,15 @@ function situationTracker(){
 		//转换原点经纬度为坐标
 		var baselat,baselatp,baselog,baselogp;
 		
-		baselat=examList[nowTid].baselat;
-		baselatp=examList[nowTid].baselatp;
-		baselog=examList[nowTid].baselog;
-		baselogp=examList[nowTid].baselogp;
+		baselat=examList[nowTid].baselat;	//纬度
+		baselatp=examList[nowTid].baselatp;	//纬度（分）
+		baselog=examList[nowTid].baselog;	//经度
+		baselogp=examList[nowTid].baselogp;	//经度（分）
 		var baselatd,baselogd;
 		baselatd=ChangeToDu(baselat,baselatp);
 		baselogd=ChangeToDu(baselog,baselogp);
-		baseMer=latLng2WebMercator(baselogd,baselatd);
-		//console.log(baseMer);
+        baseMer=latLng2WebMercator(baselogd,baselatd);
+		// console.log(baseMer)
 		//计算目标位置的墨卡托坐标
 		//var targetMer={};
 		//targetMer.x=baseMer.x+distance*1000*Math.cos(getRadian(a));
@@ -152,28 +146,24 @@ function situationTracker(){
 		target.y=ChangeToDFM(target.y);
 		//经度
 		if(examList[nowTid].baselogtype==1){
-			var baselogtype="S";
+			var baselogtype="E";	//东经
 		}
 		else{
-			var baselogtype="N";
+			var baselogtype="W";	//西经
 		}
-
 		//纬度
 		if(examList[nowTid].baselattype==1){
-			var baselattype="E";
+			var baselattype="N";	//北纬
 		}
 		else{
-			var baselattype="W";
+			var baselattype="S";	//南纬
 		}
 		position.x=target.x;
 		position.y=target.y;
 		position.a=a;
 		position.d=distance;
-		var out="<p>经纬度："+baselogtype+target.y+"  "+baselattype+target.x+"  距离："+distanceO+"km 方位："+parseFloat(a.toFixed(2))+"°  鼠标位置： x："+x+"  y："+y+"</p>";
+		var out="<p>经纬度："+baselogtype+target.x+"  "+baselattype+target.y+"  距离："+distanceO+"km 方位："+parseFloat(a.toFixed(2))+"°  鼠标位置： x："+x+"  y："+y+"</p>";
 		nowinfoEle.html(out);
-		
-		console.log("");
-		
 		//反向计算一波
 		dTargetMer=latLng2WebMercator(target.x,target.y);
 		
