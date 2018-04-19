@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>态势选择屏</title>
+    <link rel="stylesheet" href="./css/reset.css">
+    <link rel="stylesheet" href="./css/target.css">
+</head>
+<body>
+<div class="situation">
+    <div class="situationBox">
+        <i class="testpoint"></i>
+        <i class="testpoint2"></i>
+        <div class="circlebox"></div>
+        <div class="circlecenter"></div>
+    </div>
+    <div class="infobox">
+        <button id="fullscreen">全屏</button>
+        <button id="fullscreennot">退出全屏</button>
+        <br/>
+        <button id="closewindow">关闭窗口</button>
+    </div>
+</div>
+<!--当前鼠标位置的状态值-->
+<div class="nowinfo">
+    <p>
+        经纬度：E122° 59.60′ N34° 49.37′
+        距离：4.441km
+        方位：352.14°
+    </p>
+</div>
+<script src="./js/jquery.js"></script>
+<script src="./js/target.js"></script>
+<script src="./js/common.js"></script>
+</body>
+</html>
