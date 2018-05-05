@@ -35,8 +35,8 @@ function bindAllBtn(){
 		window.close();
 	});
 }
-var cX=500,cY=490;	//初始化中心点位置
-var cR=475;			//初始化半径大小
+var cX=500,cY=490;	//初始化中心点位置(px)
+var cR=475;			//初始化半径大小（px）
 
 var examList=eval({"q":[
 		{"id":"55","baselog":"0","baselogp":"0","baselogtype":"1","baselat":"0","baselatp":"0","baselattype":"1","radius":"3","controlmode":"1","logtype":"1","log":"18","logp":"6","lattype":"1","lat":"18","latp":"6","tposition":"0","trange":"0","trangeunit":"1","speedmode":"1","course":"12","coursespeed":"12","coursespeedunit":"1","targetmode":"wst","targetattr":"1","targethight":"600"},
@@ -56,8 +56,7 @@ function situationTracker(){
 		//计算角度和距离
 		x=e.pageX;	//鼠标点横向坐标
 		y=e.pageY;	//鼠标点纵向坐标
-		
-		
+
 		//在坐标轴右侧
 		if(x>cX){
 			//在坐标轴右下
@@ -85,40 +84,38 @@ function situationTracker(){
 		ox=cX-x;
 		oy=cY-y;
 		
-		//计算距离
+		//计算鼠标点到圆心的距离
 		var d=Math.sqrt(ox*ox+oy*oy);
 		if (d>cR){
 			return false;
 		}
+
 		//计算角
 		var a=getAngle(Math.asin(oy/d));
 		a=parseFloat(a.toFixed(2));
+
 		switch(aType){
-			case 1:
+			case 1:         //第一象限
 				a=90-a;
+                // targetlogtype = '';
+                // targetlattype = '';
 				break;
-			case 2:
+			case 2:         //第二象限
 				a=90+a;
 				break;
-			case 3:
+			case 3:         //第三象限
 				a=270-a;
 				break;
-			case 4:
+			case 4:         //第四象限
 				a=270+a;
 				break;
 		}
 		if(isNaN(a)){
 			a=0;
 		}
-		//计算地图表面的距离(实际半径)
-		var radius=examList[nowTid].radius;
 
-		distance=radius/cR;
-		var distanceO=parseFloat(distance.toFixed(3));
-		
 		//转换原点经纬度为坐标
 		var baselat,baselatp,baselog,baselogp;
-		
 		baselat=examList[nowTid].baselat;	//纬度
 		baselatp=examList[nowTid].baselatp;	//纬度（分）
 		baselog=examList[nowTid].baselog;	//经度
@@ -127,13 +124,13 @@ function situationTracker(){
 		baselatd=ChangeToDu(baselat,baselatp);
 		baselogd=ChangeToDu(baselog,baselogp);
         baseMer=latLng2WebMercator(baselogd,baselatd);
-		// console.log(baseMer)
-		//计算目标位置的墨卡托坐标
-		//var targetMer={};
-		//targetMer.x=baseMer.x+distance*1000*Math.cos(getRadian(a));
-		//targetMer.y=baseMer.y+distance*1000*Math.sin(getRadian(a));
-		
-		//在坐标轴右侧
+
+
+        //有效视图范围的半径
+        var radius=examList[nowTid].radius;
+        distance=radius/cR;
+
+        //在坐标轴右侧
 		targetMer.x=baseMer.x+distance*1000*ox;
 		targetMer.y=baseMer.y+distance*1000*oy;
 		
@@ -144,25 +141,33 @@ function situationTracker(){
 		targetD.y=target.y;
 		target.x=ChangeToDFM(target.x);
 		target.y=ChangeToDFM(target.y);
+
+        //
+        // //计算基准点和目标点之间的距离
+        // var targetDist = getDistance(0,0,targetD.x,targetD.y) > radius ? radius:getDistance(0,0,targetD.x,targetD.y);
+
+
+
 		//经度
+		var baselogtype ;
 		if(examList[nowTid].baselogtype==1){
-			var baselogtype="E";	//东经
+			 baselogtype="E";	//东经
 		}
 		else{
-			var baselogtype="W";	//西经
+			 baselogtype="W";	//西经
 		}
 		//纬度
 		if(examList[nowTid].baselattype==1){
-			var baselattype="N";	//北纬
+			 baselattype="N";	//北纬
 		}
 		else{
-			var baselattype="S";	//南纬
+			 baselattype="S";	//南纬
 		}
 		position.x=target.x;
 		position.y=target.y;
 		position.a=a;
 		position.d=distance;
-		var out="<p>经纬度："+baselogtype+target.x+"  "+baselattype+target.y+"  距离："+distanceO+"km 方位："+parseFloat(a.toFixed(2))+"°  鼠标位置： x："+x+"  y："+y+"</p>";
+		var out="<p>经纬度："+baselogtype+target.x+"  "+baselattype+target.y+"  距离："+targetDist+"km 方位："+parseFloat(a.toFixed(2))+"°  鼠标位置： x："+x+"  y："+y+"</p>";
 		nowinfoEle.html(out);
 		//反向计算一波
 		dTargetMer=latLng2WebMercator(target.x,target.y);
@@ -192,7 +197,6 @@ function addToTargetWindow(vx,vy){
 	//计算距离差（米） 距离差转换为像素 获取最终像素点位置
 	var rx=cX+((vx-baseMer.x)/ox/1000);
 	var ry=cY+((vy-baseMer.y)/oy/1000);
-	
 
 	testpoint2Ele.css({"left":ry,"top":rx});
 }
@@ -202,6 +206,48 @@ function changePosition(position) {
 
 }
 function choosePoint() {
+
+}
+//假设地球是椭球形
+function getDistance(lat1,lng1,lat2,lng2){
+    var f = getRad((lat1 + lat2)/2);
+    var g = getRad((lat1 - lat2)/2);
+    var l = getRad((lng1 - lng2)/2);
+    var sg = Math.sin(g);
+    var sl = Math.sin(l);
+    var sf = Math.sin(f);
+    var s,c,w,r,d,h1,h2;
+    var a = 6378137.0;//The Radius of eath in meter.
+    var fl = 1/298.257;
+    sg = sg*sg;
+    sl = sl*sl;
+    sf = sf*sf;
+    s = sg*(1-sl) + (1-sf)*sl;
+    c = (1-sg)*(1-sl) + sf*sl;
+    w = Math.atan(Math.sqrt(s/c));
+    r = Math.sqrt(s*c)/w;
+    d = 2*w*a;
+    h1 = (3*r -1)/2/c;
+    h2 = (3*r +1)/2/s;
+    s = d*(1 + fl*(h1*sf*(1-sg) - h2*(1-sf)*sg));
+    s = s/1000;
+    s = s.toFixed(2);//指定小数点后的位数。
+    return s;
+}
+
+function getRad(d){
+    var PI = Math.PI;
+    return d*PI/180.0;
+}
+
+
+//根据鼠标坐标计算经纬度
+function exchangeTo(lat,long,xdist,ydistgrade) {
+    //首先计算dist实际距离
+    var trueXDist = 3*xdist/475;  //单位km
+    var trueYDist = 3*ydist/475;  //单位km
+
+
 
 }
 
